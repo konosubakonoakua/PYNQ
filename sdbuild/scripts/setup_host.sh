@@ -71,6 +71,29 @@ else
     exit 1
 fi
 
+case $(uname -a) in
+  *ubuntu*) HOST_OS=ubuntu;;
+  *Debian*) HOST_OS=debian;;
+  *)
+    echo "Unsupported system"
+    exit 1
+    ;;
+esac
+
+# Add Docker's official GPG key:
+sudo apt-get install ca-certificates curl
+
+# Add Docker's official GPG key:
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/${HOST_OS}/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${HOST_OS} \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
 # Setup docker and containerd using repository before installing them
 sudo apt-get install -y \
         apt-transport-https \
@@ -78,9 +101,7 @@ sudo apt-get install -y \
         curl \
         gnupg-agent \
         software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository \
-        "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+
 sudo apt-get update
 
 sudo dpkg --add-architecture i386
@@ -113,7 +134,8 @@ sudo make install
 cd ..
 
 qemuver="4.0.0"
-wget http://wiki.qemu-project.org/download/qemu-$qemuver.tar.bz2
+# wget http://wiki.qemu-project.org/download/qemu-$qemuver.tar.bz2
+wget http://download.qemu.org/qemu-$qemuver.tar.bz2
 tar -xf qemu-$qemuver.tar.bz2
 cd qemu-$qemuver
 ./configure --target-list=arm-linux-user,aarch64-linux-user \
